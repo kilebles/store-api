@@ -1,5 +1,7 @@
 from sqlalchemy import String, Integer, Numeric, Boolean, ForeignKey
+from decimal import Decimal
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from src.core.db import Base
 
 
@@ -9,8 +11,8 @@ class Product(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
-    price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
-    discount_price: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
+    price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    discount_price: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
     stock: Mapped[int] = mapped_column(Integer, default=0)
     main_image_url: Mapped[str | None] = mapped_column(String, nullable=True)
     size: Mapped[str | None] = mapped_column(String(50), nullable=True)

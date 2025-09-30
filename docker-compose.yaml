@@ -10,8 +10,8 @@ x-minio-variables: &minio-variables
 services:
   backend:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ./backend
+      dockerfile: dockerfile
     restart: on-failure
     depends_on:
       db:
@@ -19,7 +19,7 @@ services:
       minio:
         condition: service_healthy
     env_file:
-      - .env
+      - ./backend/.env
     environment:
       PYTHONUNBUFFERED: "1"
     command:
@@ -35,7 +35,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - .:/app:delegated
+      - ./backend:/app:delegated
     working_dir: /app
 
   db:
