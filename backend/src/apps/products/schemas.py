@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 from typing import Annotated
 from pydantic import Field, ConfigDict
@@ -29,9 +30,19 @@ class TagOut(CamelModel):
     """
     DTO тега товара.
     """
-
+    
     id: int
     name: str
+    category_id: int
+
+
+class TagIn(CamelModel):
+    """
+    DTO для создания нового тега.
+    """
+    
+    name: str
+    category_id: int
 
 
 class CategoryOut(CamelModel):
@@ -40,6 +51,15 @@ class CategoryOut(CamelModel):
     """
 
     id: int
+    name: str
+    tags: list[TagOut] = []
+    
+
+class CategoryIn(CamelModel):
+    """
+    DTO для создания новой категории.
+    """
+    
     name: str
 
 
@@ -60,6 +80,8 @@ class ProductOut(CamelModel):
     category: CategoryOut | None
     images: list[ProductImageOut]
     tags: list[TagOut]
+    created_at: datetime
+    updated_at: datetime
 
 
 class ProductIn(CamelModel):

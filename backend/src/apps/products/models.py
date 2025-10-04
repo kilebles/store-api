@@ -1,4 +1,5 @@
-from sqlalchemy import String, Integer, Numeric, Boolean, ForeignKey
+from datetime import datetime
+from sqlalchemy import String, Integer, Numeric, Boolean, ForeignKey, DateTime
 from decimal import Decimal
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -17,8 +18,14 @@ class Product(Base):
     main_image_url: Mapped[str | None] = mapped_column(String, nullable=True)
     size: Mapped[str | None] = mapped_column(String(50), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-
     category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id"))
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
 
     category = relationship("Category", back_populates="products")
     images = relationship("ProductImage", back_populates="product", cascade="all, delete")
@@ -32,6 +39,18 @@ class Category(Base):
     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
 
     products = relationship("Product", back_populates="category")
+    tags = relationship("Tag", back_populates="category", cascade="all, delete-orphan")
+
+
+class Tag(Base):
+    __tablename__ = "tags"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(50), nullable=False)
+    category_id: Mapped[int] = mapped_column(ForeignKey("categories.id", ondelete="CASCADE"), nullable=False)
+
+    category = relationship("Category", back_populates="tags")
+    products = relationship("Product", secondary="product_tags", back_populates="tags")
 
 
 class ProductImage(Base):
@@ -42,15 +61,6 @@ class ProductImage(Base):
     image_url: Mapped[str] = mapped_column(String, nullable=False)
 
     product = relationship("Product", back_populates="images")
-
-
-class Tag(Base):
-    __tablename__ = "tags"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
-
-    products = relationship("Product", secondary="product_tags", back_populates="tags")
 
 
 class ProductTag(Base):

@@ -1,5 +1,4 @@
 from typing import Iterable, List
-
 from sqlalchemy import select, delete, true
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -14,9 +13,6 @@ class ProductService:
     """
 
     def __init__(self, session: AsyncSession):
-        """
-        Инициализация сервиса с сессией БД.
-        """
         self.session = session
 
     async def create(self, data: schemas.ProductIn) -> models.Product:
@@ -48,10 +44,7 @@ class ProductService:
             product.tags = list(tags)
 
         await self.session.commit()
-        await self.session.refresh(
-            product,
-            attribute_names=("category", "images", "tags"),
-        )
+        await self.session.refresh(product, attribute_names=("category", "images", "tags"))
         return product
 
     async def get(self, product_id: int) -> models.Product | None:
@@ -117,10 +110,7 @@ class ProductService:
                 )
 
         await self.session.commit()
-        await self.session.refresh(
-            product,
-            attribute_names=("category", "images", "tags"),
-        )
+        await self.session.refresh(product, attribute_names=("category", "images", "tags"))
         return product
 
     async def delete(self, product_id: int) -> bool:
@@ -183,3 +173,99 @@ class ProductService:
         if not product:
             raise AppException("Товар не найден", status_code=404)
         return product
+
+    async def create_category(self, name: str) -> models.Category:
+        """
+        Создать категорию
+        """
+        category = models.Category(name=name)
+        self.session.add(category)
+        await self.session.flush()
+        await self.session.refresh(category)
+        await self.session.commit()
+        return category
+
+    async def list_categories(self) -> List[models.Category]:
+        """
+        Получить все категории (с тегами).
+        """
+        result = await self.session.execute(
+            select(models.Category).options(selectinload(models.Category.tags))
+        )
+        return result.scalars().all()
+
+    async def update_category(self, category_id: int, name: str) -> models.Category | None:
+        """
+        Обновить категорию.
+        """
+        category = await self.session.get(models.Category, category_id)
+        if not category:
+            return None
+        category.name = name
+        await self.session.commit()
+        await self.session.refresh(category)
+        return category
+
+    async def delete_category(self, category_id: int) -> bool:
+        """
+        Удалить категорию.
+        """
+        category = await self.session.get(models.Category, category_id)
+        if not category:
+            return False
+        await self.session.delete(category)
+        await self.session.commit()
+        return True
+
+    async def create_tag(self, name: str, category_id: int) -> models.Tag:
+        """
+        Создать тег, принадлежащий категории.
+        """
+        category = await self.session.get(models.Category, category_id)
+        if not category:
+            raise AppException("Категория не найдена", status_code=404)
+
+        tag = models.Tag(name=name, category_id=category_id)
+        self.session.add(tag)
+        await self.session.commit()
+        await self.session.refresh(tag)
+        return tag
+
+    async def list_tags(self) -> List[models.Tag]:
+        """
+        Получить все теги.
+        """
+        result = await self.session.execute(select(models.Tag))
+        return result.scalars().all()
+
+    async def list_tags_by_category(self, category_id: int) -> List[models.Tag]:
+        """
+        Получить все теги определённой категории.
+        """
+        result = await self.session.execute(
+            select(models.Tag).where(models.Tag.category_id == category_id)
+        )
+        return result.scalars().all()
+
+    async def update_tag(self, tag_id: int, name: str) -> models.Tag | None:
+        """
+        Обновить тег.
+        """
+        tag = await self.session.get(models.Tag, tag_id)
+        if not tag:
+            return None
+        tag.name = name
+        await self.session.commit()
+        await self.session.refresh(tag)
+        return tag
+
+    async def delete_tag(self, tag_id: int) -> bool:
+        """
+        Удалить тег.
+        """
+        tag = await self.session.get(models.Tag, tag_id)
+        if not tag:
+            return False
+        await self.session.delete(tag)
+        await self.session.commit()
+        return True

@@ -11,5 +11,5 @@ def apply_routes(app: FastAPI) -> None:
     """
     
     app.include_router(health_router, prefix="/health", tags=["Health"])
-    app.include_router(admin_products_router, prefix="/admin/products", tags=["Admin:products"])
-    app.include_router(products_router, prefix="/products", tags=["Products"])
+    app.include_router(admin_products_router, prefix="/api/admin/products", tags=["Admin:products"])
+    app.include_router(products_router, prefix="/api/products", tags=["Products"])

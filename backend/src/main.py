@@ -26,7 +26,7 @@ def create_app() -> FastAPI:
         title="store-api",
     )
 
-    use_middleware(app, settings.CORS_ORIGINS)
+    use_middleware(app, settings.cors_origins_list)
     use_exceptions_handlers(app, settings)
     apply_routes(app)
 
